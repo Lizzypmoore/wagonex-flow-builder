@@ -54,6 +54,11 @@ body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);displ
 .preset-chip{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:10px;font-weight:600;color:var(--text3);transition:all 0.15s;font-family:'Inter',sans-serif;}
 .preset-chip:hover{background:var(--accent-dim);color:var(--accent2);border-color:rgba(59,108,245,0.2);}
 .preset-chip.active{background:var(--accent-dim);color:var(--accent2);border-color:rgba(59,108,245,0.3);}
+.tier-chip{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px 10px;text-align:left;width:100%;}
+.tier-chip .tier-name{font-size:11px;font-weight:700;letter-spacing:0.5px;}
+.tier-chip .tier-desc{font-size:9px;font-weight:400;opacity:0.55;line-height:1.3;}
+.tier-chip.active .tier-name{color:var(--accent2);}
+.tier-chip.active .tier-desc{opacity:0.7;}
 
 /* Node cards */
 .node-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px;border-left:3px solid #333;transition:border-color 0.2s;}
@@ -146,18 +151,26 @@ canvas#preview{border-radius:10px;border:1px solid var(--border);max-width:100%;
     <div class="tab-content active" id="tab-text">
       <div class="section">
         <div class="section-label">Copy</div>
-        <div class="field-row"><label>Headline</label><input type="text" id="headline" value="Ready to grow?" oninput="redraw()"></div>
-        <div class="field-row"><label>Subheading</label><input type="text" id="subheading" value="Add partners and watch your reach expand" oninput="redraw()"></div>
+        <div class="field-row"><label>Headline</label><input type="text" id="headline" value="Wagonex Pro" oninput="redraw()"></div>
+        <div class="field-row"><label>Subheading</label><input type="text" id="subheading" value="Full network · Connect storefronts across the platform" oninput="redraw()"></div>
         <div class="field-row"><label>Centre Label</label><input type="text" id="centerName" value="WAGONEX" oninput="redraw()"></div>
-        <div class="field-row"><label>Footer</label><input type="text" id="tagline" value="SAME PLATFORM · NEW REVENUE STREAMS" oninput="redraw()"></div>
+        <div class="field-row"><label>Footer</label><input type="text" id="tagline" value="WAGONEX PRO · FULL NETWORK ACCESS" oninput="redraw()"></div>
       </div>
       <div class="section">
-        <div class="section-label">Quick Presets</div>
-        <div class="presets-row">
-          <button class="preset-chip active" onclick="applyPreset('default',this)">Default</button>
-          <button class="preset-chip" onclick="applyPreset('growth',this)">Growth</button>
-          <button class="preset-chip" onclick="applyPreset('partners',this)">Partners</button>
-          <button class="preset-chip" onclick="applyPreset('minimal',this)">Minimal</button>
+        <div class="section-label">Platform Tier</div>
+        <div class="presets-row" style="flex-direction:column;gap:6px;">
+          <button class="preset-chip tier-chip" onclick="applyPreset('lite',this)">
+            <span class="tier-name">Lite</span>
+            <span class="tier-desc">One storefront · Customers in, no inventory</span>
+          </button>
+          <button class="preset-chip tier-chip" onclick="applyPreset('core',this)">
+            <span class="tier-name">Core</span>
+            <span class="tier-desc">One storefront · Customers + inventory, no connections</span>
+          </button>
+          <button class="preset-chip tier-chip active" onclick="applyPreset('pro',this)">
+            <span class="tier-name">Pro</span>
+            <span class="tier-desc">Multiple storefronts · Vehicles & customers flow across the network</span>
+          </button>
         </div>
       </div>
     </div>
@@ -236,17 +249,52 @@ function toggleFullscreen(){document.body.classList.toggle('fullscreen');}
 function resetAll(){nodes=defaultNodes();customCenterPos=null;nodeCustomPos={};childCustomPos={};document.getElementById('cxSlider').value=50;document.getElementById('cxNum').value=50;document.getElementById('cySlider').value=50;document.getElementById('cyNum').value=50;renderNodeUI();startAnimation();}
 function applyPreset(name,el){
   document.querySelectorAll('.preset-chip').forEach(c=>c.classList.remove('active'));if(el)el.classList.add('active');
-  const p={default:{h:'Ready to grow?',s:'Add partners and watch your reach expand',t:'SAME PLATFORM · NEW REVENUE STREAMS'},growth:{h:'Scale your network',s:'Every new connection multiplies your reach',t:'EXPONENTIAL GROWTH · ZERO FRICTION'},partners:{h:'Partner ecosystem',s:'Seamless integration with your dealer network',t:'ONE PLATFORM · INFINITE POSSIBILITIES'},minimal:{h:'Wagonex',s:'The subscription platform',t:''}}[name];
-  if(!p)return;document.getElementById('headline').value=p.h;document.getElementById('subheading').value=p.s;document.getElementById('tagline').value=p.t;redraw();
+  customCenterPos=null;nodeCustomPos={};childCustomPos={};
+  document.getElementById('cxSlider').value=50;document.getElementById('cxNum').value=50;
+  document.getElementById('cySlider').value=50;document.getElementById('cyNum').value=50;
+
+  if(name==='lite'){
+    // Lite: single storefront, customers flow in only, no vehicles
+    document.getElementById('headline').value='Wagonex Lite';
+    document.getElementById('subheading').value='Customer acquisition through your own storefront';
+    document.getElementById('centerName').value='WAGONEX';
+    document.getElementById('tagline').value='WAGONEX LITE · CUSTOMER ACQUISITION';
+    nodes=[
+      {label:'Your Storefront',sub:'Lite',color:'#2dd4a0',flow:'in',particleIcon:'👤',particleIconIn:'👤',children:[]},
+    ];
+  } else if(name==='core'){
+    // Core: single storefront, customers + vehicles flow through, no partner connections
+    document.getElementById('headline').value='Wagonex Core';
+    document.getElementById('subheading').value='Your inventory and customers on one storefront';
+    document.getElementById('centerName').value='WAGONEX';
+    document.getElementById('tagline').value='WAGONEX CORE · INVENTORY + CUSTOMERS';
+    nodes=[
+      {label:'Your Storefront',sub:'Core',color:'#5b8aff',flow:'both',particleIcon:'👤',particleIconIn:'🚗',children:[]},
+    ];
+  } else if(name==='pro'){
+    // Pro: multiple storefronts connected, vehicles and customers flow across the network
+    document.getElementById('headline').value='Wagonex Pro';
+    document.getElementById('subheading').value='Full network · Connect storefronts across the platform';
+    document.getElementById('centerName').value='WAGONEX';
+    document.getElementById('tagline').value='WAGONEX PRO · FULL NETWORK ACCESS';
+    nodes=[
+      {label:'Pro Storefront',sub:'Your dealership',color:'#2dd4a0',flow:'both',particleIcon:'👤',particleIconIn:'🚗',children:[]},
+      {label:'Pro Storefront',sub:'Partner dealer',color:'#5b8aff',flow:'both',particleIcon:'🚗',particleIconIn:'👤',children:[]},
+      {label:'Core Storefront',sub:'Independent',color:'#a77bfa',flow:'both',particleIcon:'👤',particleIconIn:'🚗',children:[]},
+      {label:'Lite Storefront',sub:'Acquisition only',color:'#f59e42',flow:'in',particleIcon:'👤',particleIconIn:'👤',children:[]},
+      {label:'Lite Storefront',sub:'Referral partner',color:'#facc15',flow:'in',particleIcon:'👤',particleIconIn:'👤',children:[]},
+    ];
+  }
+  renderNodeUI();startAnimation();
 }
 
 function defaultNodes(){
   return [
-    {label:'Ford Dealer',sub:'Branded storefront',color:'#2dd4a0',flow:'both',particleIcon:'🚗',particleIconIn:'💰',children:[{label:'Sub Broker',sub:'Referral partner',color:'#2dd4a0',flow:'out',particleIcon:'🚗',particleIconIn:'💰'}]},
-    {label:'BMW Broker',sub:'Your storefront',color:'#5b8aff',flow:'out',particleIcon:'🚗',particleIconIn:'🚗',children:[]},
-    {label:'Network',sub:'Full visibility',color:'#a77bfa',flow:'in',particleIcon:'📋',particleIconIn:'📋',children:[]},
-    {label:'Customer',sub:'Seamless experience',color:'#f59e42',flow:'both',particleIcon:'👤',particleIconIn:'💰',children:[]},
-    {label:'Affiliate',sub:'Tracked referral',color:'#facc15',flow:'out',particleIcon:'🔗',particleIconIn:'🔗',children:[]},
+    {label:'Pro Storefront',sub:'Your dealership',color:'#2dd4a0',flow:'both',particleIcon:'👤',particleIconIn:'🚗',children:[]},
+    {label:'Pro Storefront',sub:'Partner dealer',color:'#5b8aff',flow:'both',particleIcon:'🚗',particleIconIn:'👤',children:[]},
+    {label:'Core Storefront',sub:'Independent',color:'#a77bfa',flow:'both',particleIcon:'👤',particleIconIn:'🚗',children:[]},
+    {label:'Lite Storefront',sub:'Acquisition only',color:'#f59e42',flow:'in',particleIcon:'👤',particleIconIn:'👤',children:[]},
+    {label:'Lite Storefront',sub:'Referral partner',color:'#facc15',flow:'in',particleIcon:'👤',particleIconIn:'👤',children:[]},
   ];
 }
 
