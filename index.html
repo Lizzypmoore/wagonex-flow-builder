@@ -224,35 +224,10 @@ const ctx=CV.getContext('2d');
 ctx.scale(DPR,DPR);
 const COLORS=['#2dd4a0','#5b8aff','#a77bfa','#f59e42','#facc15','#f472b6','#60a5fa','#4ade80'];
 const PARTICLE_PRESETS=['🚗','👤','📦','🔗','⭐','🏷️','💼','🔑','📋','🚙','🏎️','🚐','💰','💵','💳','🪙'];
-const BRANDS=[
-  {name:'No Brand',logo:null},
-  {name:'Alfa Romeo',logo:'https://upload.wikimedia.org/wikipedia/en/thumb/a/a8/Alfa_Romeo_logo.svg/180px-Alfa_Romeo_logo.svg.png'},
-  {name:'Audi',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Audi-Logo_2016.svg/240px-Audi-Logo_2016.svg.png'},
-  {name:'BMW',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/BMW.svg/200px-BMW.svg.png'},
-  {name:'Chevrolet',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Chevrolet_logo.svg/200px-Chevrolet_logo.svg.png'},
-  {name:'Ferrari',logo:'https://upload.wikimedia.org/wikipedia/en/thumb/d/d1/Ferrari-Logo.svg/180px-Ferrari-Logo.svg.png'},
-  {name:'Ford',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Ford_logo_flat.svg/240px-Ford_logo_flat.svg.png'},
-  {name:'Honda',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Honda.svg/200px-Honda.svg.png'},
-  {name:'Hyundai',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Hyundai_Motor_Company_logo.svg/240px-Hyundai_Motor_Company_logo.svg.png'},
-  {name:'Jaguar',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Jaguar_Cars_logo.svg/200px-Jaguar_Cars_logo.svg.png'},
-  {name:'Kia',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Kia-logo.svg/240px-Kia-logo.svg.png'},
-  {name:'Land Rover',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Land_Rover_logo.svg/240px-Land_Rover_logo.svg.png'},
-  {name:'Lexus',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Lexus_division_emblem.svg/200px-Lexus_division_emblem.svg.png'},
-  {name:'Mazda',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Mazda_logo_with_Japanese_text.svg/240px-Mazda_logo_with_Japanese_text.svg.png'},
-  {name:'Mercedes-Benz',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Mercedes-Logo.svg/200px-Mercedes-Logo.svg.png'},
-  {name:'Mini',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/MINI_logo2021.svg/200px-MINI_logo2021.svg.png'},
-  {name:'Nissan',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Nissan_logo.svg/240px-Nissan_logo.svg.png'},
-  {name:'Peugeot',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Peugeot_logo_2021.svg/200px-Peugeot_logo_2021.svg.png'},
-  {name:'Renault',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Renault_2021_Text.svg/240px-Renault_2021_Text.svg.png'},
-  {name:'Toyota',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Toyota_carlogo.svg/200px-Toyota_carlogo.svg.png'},
-  {name:'Volkswagen',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Volkswagen_logo_2019.svg/200px-Volkswagen_logo_2019.svg.png'},
-  {name:'Volvo',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Volvo_Cars_logo.svg/200px-Volvo_Cars_logo.svg.png'},
-];
-const brandImgCache={};
-BRANDS.forEach(b=>{if(!b.logo)return;const img=new Image();img.crossOrigin='anonymous';img.src=b.logo;img.onload=()=>{brandImgCache[b.name]=img;redraw();};brandImgCache[b.name]=img;});
+
 
 let nodes=[],parts=[],visibleNodes=[],visibleChildren=[];
-let rafId=null,nodeRevealIdx=0,spawnTimers=[],gifReady=false,openDDId=null;
+let rafId=null,nodeRevealIdx=0,spawnTimers=[],gifReady=false;
 let customCenterPos=null,nodeCustomPos={},childCustomPos={};
 let dragging=null,animTime=0;
 
@@ -267,11 +242,11 @@ function applyPreset(name,el){
 
 function defaultNodes(){
   return [
-    {label:'Ford Dealer',sub:'Branded storefront',brand:'Ford',color:'#2dd4a0',flow:'both',particleIcon:'🚗',particleIconIn:'💰',children:[{label:'Sub Broker',sub:'Referral partner',brand:'No Brand',color:'#2dd4a0',flow:'out',particleIcon:'🚗',particleIconIn:'💰'}]},
-    {label:'BMW Broker',sub:'Your storefront',brand:'BMW',color:'#5b8aff',flow:'out',particleIcon:'🚗',particleIconIn:'🚗',children:[]},
-    {label:'Network',sub:'Full visibility',brand:'No Brand',color:'#a77bfa',flow:'in',particleIcon:'📋',particleIconIn:'📋',children:[]},
-    {label:'Customer',sub:'Seamless experience',brand:'No Brand',color:'#f59e42',flow:'both',particleIcon:'👤',particleIconIn:'💰',children:[]},
-    {label:'Affiliate',sub:'Tracked referral',brand:'No Brand',color:'#facc15',flow:'out',particleIcon:'🔗',particleIconIn:'🔗',children:[]},
+    {label:'Ford Dealer',sub:'Branded storefront',color:'#2dd4a0',flow:'both',particleIcon:'🚗',particleIconIn:'💰',children:[{label:'Sub Broker',sub:'Referral partner',color:'#2dd4a0',flow:'out',particleIcon:'🚗',particleIconIn:'💰'}]},
+    {label:'BMW Broker',sub:'Your storefront',color:'#5b8aff',flow:'out',particleIcon:'🚗',particleIconIn:'🚗',children:[]},
+    {label:'Network',sub:'Full visibility',color:'#a77bfa',flow:'in',particleIcon:'📋',particleIconIn:'📋',children:[]},
+    {label:'Customer',sub:'Seamless experience',color:'#f59e42',flow:'both',particleIcon:'👤',particleIconIn:'💰',children:[]},
+    {label:'Affiliate',sub:'Tracked referral',color:'#facc15',flow:'out',particleIcon:'🔗',particleIconIn:'🔗',children:[]},
   ];
 }
 
@@ -295,12 +270,7 @@ CV.addEventListener('touchstart',e=>{e.preventDefault();const{x,y}=getCanvasXY(e
 CV.addEventListener('touchmove',e=>{e.preventDefault();const{x,y}=getCanvasXY(e.touches[0]);if(dragging){if(dragging.type==='center')customCenterPos={x,y};else if(dragging.type==='node')nodeCustomPos[dragging.ni]={x,y};else if(dragging.type==='child')childCustomPos[`${dragging.ni}_${dragging.ci}`]={x,y};redraw();}},{passive:false});
 CV.addEventListener('touchend',()=>{dragging=null;});
 
-// Brand picker
-function buildBrandPicker(pid,brandName,onSel){const wrap=document.createElement('div');wrap.className='brand-picker-wrap';const sel=BRANDS.find(b=>b.name===brandName)||BRANDS[0];const btn=document.createElement('div');btn.className='brand-selected';btn.id=`bs-${pid}`;btn.innerHTML=`${sel.logo?`<img src="${sel.logo}" crossorigin="anonymous">`:'<span style="width:16px;text-align:center;font-size:9px;color:rgba(255,255,255,0.3)">●</span>'}<span>${sel.name}</span><span class="arrow">▾</span>`;btn.onclick=e=>{e.stopPropagation();toggleDD(pid);};const dd=document.createElement('div');dd.className='brand-dropdown';dd.id=`dd-${pid}`;const sw=document.createElement('div');sw.className='brand-search';const si=document.createElement('input');si.placeholder='Search brands…';si.onclick=e=>e.stopPropagation();si.oninput=()=>fillBrandList(pid,si.value,onSel);sw.appendChild(si);const bl=document.createElement('div');bl.className='brand-list';bl.id=`bl-${pid}`;dd.appendChild(sw);dd.appendChild(bl);wrap.appendChild(btn);wrap.appendChild(dd);fillBrandList(pid,'',onSel);return wrap;}
-function fillBrandList(pid,filter,onSel){const l=document.getElementById(`bl-${pid}`);if(!l)return;l.innerHTML='';BRANDS.filter(b=>b.name.toLowerCase().includes(filter.toLowerCase())).forEach(b=>{const o=document.createElement('div');o.className='brand-option';o.innerHTML=`${b.logo?`<img src="${b.logo}" crossorigin="anonymous">`:'<span style="width:18px;text-align:center;font-size:9px;color:rgba(255,255,255,0.3)">●</span>'}<span>${b.name}</span>`;o.onclick=()=>{onSel(b.name);closeAllDD();renderNodeUI();redraw();};l.appendChild(o);});}
-function toggleDD(id){if(openDDId===id){closeAllDD();return;}closeAllDD();const d=document.getElementById(`dd-${id}`);if(d){d.classList.add('open');openDDId=id;}}
-function closeAllDD(){document.querySelectorAll('.brand-dropdown').forEach(d=>d.classList.remove('open'));openDDId=null;}
-document.addEventListener('click',closeAllDD);
+document.addEventListener('click',()=>{});
 
 function buildIconPicker(labelTxt,val,onChange){const wrap=document.createElement('div');wrap.style.cssText='display:flex;flex-direction:column;gap:3px;';const row=document.createElement('div');row.className='particle-row';const lbl=document.createElement('label');lbl.textContent=labelTxt;const inp=document.createElement('input');inp.className='particle-input';inp.value=val||'🚗';inp.maxLength=2;inp.oninput=()=>{onChange(inp.value);redraw();};row.appendChild(lbl);row.appendChild(inp);const pp=document.createElement('div');pp.className='particle-presets';PARTICLE_PRESETS.forEach(e=>{const pb=document.createElement('button');pb.className='preset-btn';pb.textContent=e;pb.onclick=()=>{onChange(e);inp.value=e;redraw();};pp.appendChild(pb);});wrap.appendChild(row);wrap.appendChild(pp);return wrap;}
 
@@ -311,7 +281,6 @@ function renderNodeUI(){
     const d=document.createElement('div');d.className='node-item';d.style.borderLeftColor=n.color;
     const hdr=document.createElement('div');hdr.className='node-item-header';hdr.innerHTML=`<span>Node ${i+1}</span>`;
     const db=document.createElement('button');db.textContent='Remove';db.onclick=()=>{nodes.splice(i,1);delete nodeCustomPos[i];renderNodeUI();redraw();};hdr.appendChild(db);d.appendChild(hdr);
-    d.appendChild(buildBrandPicker(`n${i}`,n.brand,name=>{nodes[i].brand=name;}));
     const r1=document.createElement('div');r1.className='node-row';
     const li=document.createElement('input');li.value=n.label;li.placeholder='Label';li.oninput=()=>{nodes[i].label=li.value;redraw();};
     const ci=document.createElement('input');ci.type='color';ci.value=n.color;ci.className='color-input';ci.oninput=()=>{nodes[i].color=ci.value;d.style.borderLeftColor=ci.value;redraw();};
@@ -323,17 +292,16 @@ function renderNodeUI(){
     const cs=document.createElement('div');cs.className='children-section';const clbl=document.createElement('div');clbl.className='children-label';clbl.textContent=`Children (${n.children.length})`;cs.appendChild(clbl);
     n.children.forEach((ch,j)=>{
       const ci2=document.createElement('div');ci2.className='child-item';
-      ci2.appendChild(buildBrandPicker(`n${i}c${j}`,ch.brand,name=>{nodes[i].children[j].brand=name;}));
       const cr1=document.createElement('div');cr1.className='child-row';const cli=document.createElement('input');cli.value=ch.label;cli.placeholder='Label';cli.oninput=()=>{nodes[i].children[j].label=cli.value;redraw();};const cci=document.createElement('input');cci.type='color';cci.value=ch.color;cci.className='color-input';cci.oninput=()=>{nodes[i].children[j].color=cci.value;redraw();};const cdb=document.createElement('button');cdb.textContent='✕';cdb.onclick=()=>{nodes[i].children.splice(j,1);delete childCustomPos[`${i}_${j}`];renderNodeUI();redraw();};cr1.appendChild(cli);cr1.appendChild(cci);cr1.appendChild(cdb);ci2.appendChild(cr1);
       const cr2=document.createElement('div');cr2.className='child-row';const csi=document.createElement('input');csi.value=ch.sub;csi.placeholder='Sub-label';csi.oninput=()=>{nodes[i].children[j].sub=csi.value;redraw();};cr2.appendChild(csi);ci2.appendChild(cr2);
       const cfl=document.createElement('div');cfl.className='child-row';const cfll=document.createElement('label');cfll.style.cssText='font-size:8px;color:rgba(255,255,255,0.28);white-space:nowrap;';cfll.textContent='Flow';const cfls=document.createElement('select');[['both','↔ Both'],['out','→ Out'],['in','← In']].forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;if(ch.flow===v)o.selected=true;cfls.appendChild(o);});cfls.onchange=()=>{nodes[i].children[j].flow=cfls.value;renderNodeUI();redraw();};cfl.appendChild(cfll);cfl.appendChild(cfls);ci2.appendChild(cfl);
       if(ch.flow==='both'){ci2.appendChild(buildIconPicker('→ Out',ch.particleIcon,v=>{nodes[i].children[j].particleIcon=v;}));ci2.appendChild(buildIconPicker('← In',ch.particleIconIn||'💰',v=>{nodes[i].children[j].particleIconIn=v;}));}else{ci2.appendChild(buildIconPicker('Icon',ch.particleIcon,v=>{nodes[i].children[j].particleIcon=v;}));}
       cs.appendChild(ci2);
     });
-    const acb=document.createElement('button');acb.className='add-child-btn';acb.textContent='+ Add Child';acb.onclick=()=>{nodes[i].children.push({label:'Child',sub:'',brand:'No Brand',color:n.color,flow:'out',particleIcon:'🚗',particleIconIn:'💰'});renderNodeUI();redraw();};cs.appendChild(acb);d.appendChild(cs);c.appendChild(d);
+    const acb=document.createElement('button');acb.className='add-child-btn';acb.textContent='+ Add Child';acb.onclick=()=>{nodes[i].children.push({label:'Child',sub:'',color:n.color,flow:'out',particleIcon:'🚗',particleIconIn:'💰'});renderNodeUI();redraw();};cs.appendChild(acb);d.appendChild(cs);c.appendChild(d);
   });
 }
-function addNode(){const idx=nodes.length%COLORS.length;nodes.push({label:'New Node',sub:'',brand:'No Brand',color:COLORS[idx],flow:'both',particleIcon:'🚗',particleIconIn:'💰',children:[]});renderNodeUI();}
+function addNode(){const idx=nodes.length%COLORS.length;nodes.push({label:'New Node',sub:'',color:COLORS[idx],flow:'both',particleIcon:'🚗',particleIconIn:'💰',children:[]});renderNodeUI();}
 
 // --- DRAWING (corporate style) ---
 function easeInOutCubic(t){return t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;}
@@ -363,27 +331,19 @@ function drawParticle(c,x,y,r,emoji,color,alpha){
   c.restore();
 }
 
-function drawNode(c,x,y,r,color,label,sub,brand,alpha=1){
+function drawNode(c,x,y,r,color,label,sub,alpha=1){
   c.save();c.globalAlpha=alpha;
   const rgb=hexToRgb(color);
-  // Outer ring — subtle pulse
   const pulse=0.06+Math.sin(animTime*1.8+x*0.008)*0.03;
   c.beginPath();c.arc(x,y,r+8,0,Math.PI*2);c.strokeStyle=`rgba(${rgb.r},${rgb.g},${rgb.b},${pulse})`;c.lineWidth=8;c.stroke();
-  // Node fill — dark with subtle color tint
   const g=c.createRadialGradient(x,y,0,x,y,r);
   g.addColorStop(0,`rgba(${Math.min(255,rgb.r+20)},${Math.min(255,rgb.g+20)},${Math.min(255,rgb.b+20)},0.12)`);
   g.addColorStop(1,'rgba(10,14,26,0.95)');
   c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fillStyle=g;c.fill();
-  // Border — clean 1.5px
   c.strokeStyle=`rgba(${rgb.r},${rgb.g},${rgb.b},0.5)`;c.lineWidth=1.5;c.stroke();
-  // Brand logo
-  const img=brandImgCache[brand];
-  if(img&&img.complete&&img.naturalWidth>0){c.save();c.beginPath();c.arc(x,y,r-2,0,Math.PI*2);c.clip();const s=r*1.05*2;c.globalAlpha=alpha*0.9;c.drawImage(img,x-s/2,y-s/2,s,s);c.restore();c.globalAlpha=alpha;}
-  // Label — sharp text with shadow for contrast
   const fontSize=Math.max(10,Math.round(r*0.42));
   c.font=`700 ${fontSize}px 'Inter',sans-serif`;
   c.textAlign='center';
-  // Text shadow for legibility
   c.fillStyle='rgba(0,0,0,0.7)';c.fillText(label.toUpperCase(),x,y+r+15);
   c.fillStyle='rgba(255,255,255,0.95)';c.fillText(label.toUpperCase(),x,y+r+14);
   if(sub){
@@ -434,7 +394,7 @@ function drawScene(vNodes,vChildren,parts){
   // Lines — parent to centre
   vNodes.forEach((n,i)=>{const p=positions[i];drawLine(ctx,cx,cy,p.x,p.y,n.color,s.lineOp,s.lineW);});
   // Child lines + nodes
-  vNodes.forEach((n,i)=>{const p=positions[i];const ch=vChildren[i]||[];ch.forEach((child,j)=>{const cp=getChildPos(i,j,p.x,p.y,cx,cy,s.childOrbit,ch.length);drawLine(ctx,p.x,p.y,cp.x,cp.y,child.color,s.lineOp*0.6,Math.max(0.5,s.lineW*0.6));drawNode(ctx,cp.x,cp.y,s.nodeR*0.5,child.color,child.label,child.sub,child.brand);});});
+  vNodes.forEach((n,i)=>{const p=positions[i];const ch=vChildren[i]||[];ch.forEach((child,j)=>{const cp=getChildPos(i,j,p.x,p.y,cx,cy,s.childOrbit,ch.length);drawLine(ctx,p.x,p.y,cp.x,cp.y,child.color,s.lineOp*0.6,Math.max(0.5,s.lineW*0.6));drawNode(ctx,cp.x,cp.y,s.nodeR*0.5,child.color,child.label,child.sub);});});
   // Particles
   parts.forEach(p=>{
     if(p.nodeIdx>=vNodes.length)return;const pos=positions[p.nodeIdx];
@@ -446,7 +406,7 @@ function drawScene(vNodes,vChildren,parts){
     drawParticle(ctx,x,y,s.particleR,p.icon||'🚗',p.color,Math.sin(p.t*Math.PI)*0.85);
   });
   // Parent nodes
-  vNodes.forEach((n,i)=>drawNode(ctx,positions[i].x,positions[i].y,s.nodeR,n.color,n.label,n.sub,n.brand));
+  vNodes.forEach((n,i)=>drawNode(ctx,positions[i].x,positions[i].y,s.nodeR,n.color,n.label,n.sub));
   // Centre
   drawCentre(ctx,cx,cy,s.centerR,s.centerName);
   // Footer
