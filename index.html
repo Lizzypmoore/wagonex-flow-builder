@@ -215,7 +215,13 @@ canvas#preview{border-radius:10px;border:1px solid var(--border);max-width:100%;
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
 <script>
-const CV=document.getElementById('preview'),ctx=CV.getContext('2d'),W=CV.width,H=CV.height;
+const CV=document.getElementById('preview');
+const DPR=window.devicePixelRatio||2;
+const W=660,H=660;
+CV.width=W*DPR;CV.height=H*DPR;
+CV.style.width=W+'px';CV.style.height=H+'px';
+const ctx=CV.getContext('2d');
+ctx.scale(DPR,DPR);
 const COLORS=['#2dd4a0','#5b8aff','#a77bfa','#f59e42','#facc15','#f472b6','#60a5fa','#4ade80'];
 const PARTICLE_PRESETS=['🚗','👤','📦','🔗','⭐','🏷️','💼','🔑','📋','🚙','🏎️','🚐','💰','💵','💳','🪙'];
 const BRANDS=[
@@ -373,28 +379,35 @@ function drawNode(c,x,y,r,color,label,sub,brand,alpha=1){
   // Brand logo
   const img=brandImgCache[brand];
   if(img&&img.complete&&img.naturalWidth>0){c.save();c.beginPath();c.arc(x,y,r-2,0,Math.PI*2);c.clip();const s=r*1.05*2;c.globalAlpha=alpha*0.9;c.drawImage(img,x-s/2,y-s/2,s,s);c.restore();c.globalAlpha=alpha;}
-  // Label
-  c.font=`600 ${Math.max(8,Math.round(r*0.34))}px 'Inter',sans-serif`;c.fillStyle='rgba(255,255,255,0.88)';c.textAlign='center';
-  c.fillText(label.toUpperCase(),x,y+r+14);
-  if(sub){c.font=`400 ${Math.max(7,Math.round(r*0.26))}px 'Inter',sans-serif`;c.fillStyle='rgba(255,255,255,0.28)';c.fillText(sub,x,y+r+25);}
+  // Label — sharp text with shadow for contrast
+  const fontSize=Math.max(10,Math.round(r*0.42));
+  c.font=`700 ${fontSize}px 'Inter',sans-serif`;
+  c.textAlign='center';
+  // Text shadow for legibility
+  c.fillStyle='rgba(0,0,0,0.7)';c.fillText(label.toUpperCase(),x,y+r+15);
+  c.fillStyle='rgba(255,255,255,0.95)';c.fillText(label.toUpperCase(),x,y+r+14);
+  if(sub){
+    const subSize=Math.max(9,Math.round(r*0.32));
+    c.font=`600 ${subSize}px 'Inter',sans-serif`;
+    c.fillStyle='rgba(0,0,0,0.5)';c.fillText(sub,x,y+r+27);
+    c.fillStyle='rgba(255,255,255,0.45)';c.fillText(sub,x,y+r+26);
+  }
   c.restore();
 }
 
 function drawCentre(c,cx,cy,cr,name){
-  // Outer halo
   const p=0.08+Math.sin(animTime*1.2)*0.04;
   c.beginPath();c.arc(cx,cy,cr+14,0,Math.PI*2);c.strokeStyle=`rgba(59,108,245,${p})`;c.lineWidth=12;c.stroke();
-  // Body
   const g=c.createRadialGradient(cx,cy,0,cx,cy,cr);g.addColorStop(0,'#182450');g.addColorStop(1,'#0c1228');
   c.beginPath();c.arc(cx,cy,cr,0,Math.PI*2);c.fillStyle=g;c.fill();
   c.strokeStyle='rgba(59,108,245,0.55)';c.lineWidth=1.8;c.stroke();
-  // Inner accent ring
   c.beginPath();c.arc(cx,cy,cr*0.65,0,Math.PI*2);c.strokeStyle='rgba(59,108,245,0.08)';c.lineWidth=1;c.stroke();
-  // Icon
   c.font=`${Math.round(cr*0.5)}px serif`;c.textAlign='center';c.textBaseline='middle';c.fillStyle='white';c.fillText('⚡',cx,cy);
   c.textBaseline='alphabetic';
-  // Label
-  c.font=`700 ${Math.max(9,Math.round(cr*0.24))}px 'Inter',sans-serif`;c.fillStyle='rgba(91,138,255,0.9)';c.letterSpacing='2px';c.fillText(name.toUpperCase(),cx,cy+cr+15);
+  const labelSize=Math.max(11,Math.round(cr*0.3));
+  c.font=`800 ${labelSize}px 'Inter',sans-serif`;
+  c.fillStyle='rgba(0,0,0,0.5)';c.fillText(name.toUpperCase(),cx,cy+cr+16);
+  c.fillStyle='rgba(91,138,255,0.95)';c.fillText(name.toUpperCase(),cx,cy+cr+15);
 }
 
 function drawScene(vNodes,vChildren,parts){
@@ -410,8 +423,10 @@ function drawScene(vNodes,vChildren,parts){
   ctx.globalAlpha=1;
   // Headline
   ctx.textAlign='center';
-  ctx.font=`700 20px 'Inter',sans-serif`;ctx.fillStyle='rgba(255,255,255,0.9)';ctx.fillText(s.headline,W/2,34);
-  ctx.font=`400 11px 'Inter',sans-serif`;ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillText(s.subheading,W/2,52);
+  ctx.font=`800 24px 'Inter',sans-serif`;ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillText(s.headline,W/2,35);
+  ctx.fillStyle='rgba(255,255,255,0.95)';ctx.fillText(s.headline,W/2,34);
+  ctx.font=`500 12px 'Inter',sans-serif`;ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fillText(s.subheading,W/2,53);
+  ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fillText(s.subheading,W/2,52);
   if(!vNodes.length){ctx.textAlign='left';return;}
   const positions=vNodes.map((_,i)=>getNodePos(i,cx,cy,orbitR,vNodes.length));
   // Orbit hint — dashed circle
@@ -435,7 +450,7 @@ function drawScene(vNodes,vChildren,parts){
   // Centre
   drawCentre(ctx,cx,cy,s.centerR,s.centerName);
   // Footer
-  if(s.tagline){ctx.font=`500 8px 'Inter',sans-serif`;ctx.textAlign='center';ctx.fillStyle='rgba(255,255,255,0.13)';ctx.fillText(s.tagline,W/2,H-12);}
+  if(s.tagline){ctx.font=`700 9px 'Inter',sans-serif`;ctx.textAlign='center';ctx.fillStyle='rgba(255,255,255,0.2)';ctx.fillText(s.tagline,W/2,H-12);}
   ctx.textAlign='left';
 }
 
@@ -469,8 +484,9 @@ function loop(){animTime+=0.016;parts=parts.filter(p=>p.t<=1);parts.forEach(p=>p
 
 function exportGif(){
   if(!gifReady)return;document.getElementById('status').textContent='Rendering…';
-  const off=document.createElement('canvas');off.width=W;off.height=H;const oc=off.getContext('2d');
-  const gif=new GIF({workers:2,quality:8,width:W,height:H,workerScript:'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'});
+  const gifW=W*2,gifH=H*2;
+  const off=document.createElement('canvas');off.width=gifW;off.height=gifH;const oc=off.getContext('2d');
+  const gif=new GIF({workers:2,quality:6,width:gifW,height:gifH,workerScript:'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'});
   const total=80;const revealAt=nodes.map((_,i)=>Math.floor((i/nodes.length)*total*0.65));
   let sv=[],sch=[],sp=[],si2=0;
   for(let f=0;f<total;f++){
@@ -479,7 +495,7 @@ function exportGif(){
     sv.forEach((n,i)=>{if(sch[i].length<n.children.length&&f>revealAt[i]+5)sch[i]=n.children.slice(0,sch[i].length+1);});
     if(f%5===0&&sv.length){const i=Math.floor(Math.random()*sv.length);const n=sv[i];const fl=n.flow||'both';if(fl==='out'||fl==='both')sp.push({nodeIdx:i,color:n.color,icon:n.particleIcon||'🚗',t:0,speed:0.05,inward:false,toChild:false});if(fl==='in'||fl==='both')sp.push({nodeIdx:i,color:n.color,icon:n.particleIconIn||'💰',t:0,speed:0.05,inward:true,toChild:false});}
     sp=sp.filter(p=>p.t<=1);sp.forEach(p=>p.t+=p.speed);
-    drawScene(sv,sch,sp);oc.clearRect(0,0,W,H);oc.drawImage(CV,0,0);
+    drawScene(sv,sch,sp);oc.clearRect(0,0,gifW,gifH);oc.drawImage(CV,0,0,gifW,gifH);
     gif.addFrame(oc,{delay:f===total-1?2500:80,copy:true});
   }
   gif.on('finished',blob=>{document.getElementById('status').textContent='✓ Exported';const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='wagonex-network.gif';a.click();setTimeout(()=>{document.getElementById('status').textContent='';},3000);});
