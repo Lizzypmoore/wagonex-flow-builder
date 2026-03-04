@@ -171,6 +171,10 @@ canvas#preview{border-radius:10px;border:1px solid var(--border);max-width:100%;
             <span class="tier-name">Pro</span>
             <span class="tier-desc">Multiple storefronts · Vehicles & customers flow across the network</span>
           </button>
+          <button class="preset-chip tier-chip" onclick="applyPreset('marketplace',this)">
+            <span class="tier-name">Marketplace</span>
+            <span class="tier-desc">Multiple inventory providers · Vehicles feed into the marketplace</span>
+          </button>
         </div>
       </div>
     </div>
@@ -271,18 +275,27 @@ function applyPreset(name,el){
     nodes=[
       {label:'Your Storefront',sub:'Core',color:'#5b8aff',flow:'both',particleIcon:'👤',particleIconIn:'🚗',children:[]},
     ];
-  } else if(name==='pro'){
-    // Pro: multiple storefronts connected, vehicles and customers flow across the network
-    document.getElementById('headline').value='Wagonex Pro';
-    document.getElementById('subheading').value='Full network · Connect storefronts across the platform';
-    document.getElementById('centerName').value='WAGONEX';
-    document.getElementById('tagline').value='WAGONEX PRO · FULL NETWORK ACCESS';
+';
     nodes=[
       {label:'Pro Storefront',sub:'Your dealership',color:'#2dd4a0',flow:'both',particleIcon:'👤',particleIconIn:'🚗',children:[]},
       {label:'Pro Storefront',sub:'Partner dealer',color:'#5b8aff',flow:'both',particleIcon:'🚗',particleIconIn:'👤',children:[]},
       {label:'Core Storefront',sub:'Independent',color:'#a77bfa',flow:'both',particleIcon:'👤',particleIconIn:'🚗',children:[]},
       {label:'Lite Storefront',sub:'Acquisition only',color:'#f59e42',flow:'in',particleIcon:'👤',particleIconIn:'👤',children:[]},
       {label:'Lite Storefront',sub:'Referral partner',color:'#facc15',flow:'in',particleIcon:'👤',particleIconIn:'👤',children:[]},
+    ];
+  } else if(name==='marketplace'){
+    // Marketplace: multiple inventory providers feed vehicles into the platform
+    document.getElementById('headline').value='Wagonex Marketplace';
+    document.getElementById('subheading').value='Multiple providers, one marketplace';
+    document.getElementById('centerName').value='WAGONEX';
+    document.getElementById('tagline').value='WAGONEX MARKETPLACE · AGGREGATED INVENTORY';
+    nodes=[
+      {label:'OEM Fleet',sub:'Manufacturer',color:'#5b8aff',flow:'in',particleIcon:'🚗',particleIconIn:'🚗',children:[]},
+      {label:'Dealer Group',sub:'Multi-site',color:'#2dd4a0',flow:'in',particleIcon:'🚗',particleIconIn:'🚗',children:[]},
+      {label:'Leasing Co.',sub:'Contract vehicles',color:'#a77bfa',flow:'in',particleIcon:'🚗',particleIconIn:'🚗',children:[]},
+      {label:'Broker',sub:'Sourced stock',color:'#f59e42',flow:'in',particleIcon:'🚗',particleIconIn:'🚗',children:[]},
+      {label:'Rental Co.',sub:'Idle fleet',color:'#facc15',flow:'in',particleIcon:'🚗',particleIconIn:'🚗',children:[]},
+      {label:'Private Seller',sub:'Individual',color:'#f472b6',flow:'in',particleIcon:'🚗',particleIconIn:'🚗',children:[]},
     ];
   }
   renderNodeUI();startAnimation();
