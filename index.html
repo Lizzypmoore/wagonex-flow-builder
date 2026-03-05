@@ -156,7 +156,7 @@ window.stab=function(el,n){
 };
 
 // Ensure IDs
-function eid(n){if(!n._id)n._id=nid();if(n.ch)n.ch.forEach(eid)}
+function eid(n){if(!n._id)n._id=nid();if(n.ch)n.ch.forEach(eid);if(n.kids)n.kids.forEach(eid)}
 
 // Layout: compute default positions, use cached if dragged
 function layout(){
@@ -166,13 +166,29 @@ function layout(){
 function doLayout(n,cx,cy,rad,dep){
   if(!pos[n._id])pos[n._id]={x:cx,y:cy};
   var p=pos[n._id];
-  if(!n.ch||!n.ch.length)return;
-  var r2=dep===0?rad:Math.min(rad,S().co*(1.2+dep*0.2));
-  for(var i=0;i<n.ch.length;i++){
-    var a=(i/n.ch.length)*Math.PI*2-Math.PI/2;
-    var ch=n.ch[i];
-    if(!pos[ch._id])pos[ch._id]={x:p.x+Math.cos(a)*r2,y:p.y+Math.sin(a)*r2};
-    doLayout(ch,pos[ch._id].x,pos[ch._id].y,r2*0.5,dep+1);
+  // Layout children of platform nodes
+  if(n.ch&&n.ch.length){
+    var r2=dep===0?rad:Math.min(rad,S().co*(1.2+dep*0.2));
+    for(var i=0;i<n.ch.length;i++){
+      var a=(i/n.ch.length)*Math.PI*2-Math.PI/2;
+      var ch=n.ch[i];
+      if(!pos[ch._id])pos[ch._id]={x:p.x+Math.cos(a)*r2,y:p.y+Math.sin(a)*r2};
+      doLayout(ch,pos[ch._id].x,pos[ch._id].y,r2*0.5,dep+1);
+    }
+  }
+  // Layout kids of storefront nodes
+  if(n.tp==='s'&&n.kids&&n.kids.length){
+    var co=S().co*0.7;
+    var pp=pos[n._id];
+    var baseAngle=Math.atan2(pp.y-H/2,pp.x-W/2);
+    for(var j=0;j<n.kids.length;j++){
+      var kid=n.kids[j];
+      if(!kid._id)kid._id=nid();
+      var spread=Math.min(Math.PI*0.6,(n.kids.length-1)*0.4);
+      var t=n.kids.length===1?0:(j/(n.kids.length-1)-0.5);
+      var ka=baseAngle+t*spread;
+      if(!pos[kid._id])pos[kid._id]={x:pp.x+Math.cos(ka)*co,y:pp.y+Math.sin(ka)*co};
+    }
   }
 }
 
@@ -186,6 +202,16 @@ function flat(n,dep){
 // Hit test
 function hit(mx,my){
   var s=S(),all=flat(R,0);
+  // Check storefront kids first (topmost small circles)
+  for(var j=all.length-1;j>=0;j--){
+    var f2=all[j];
+    if(f2.n.tp==='s'&&f2.n.kids){
+      for(var k=0;k<f2.n.kids.length;k++){
+        var kid=f2.n.kids[k],kp=pos[kid._id];
+        if(kp){var kr=s.nr*(f2.d<=1?1:Math.pow(.75,f2.d-1))*0.55;if(Math.hypot(mx-kp.x,my-kp.y)<kr+10)return kid._id}
+      }
+    }
+  }
   for(var i=all.length-1;i>=0;i--){
     var f=all[i],p=pos[f.n._id];if(!p)continue;
     if(f.n.tp==='p'){
@@ -275,14 +301,23 @@ function dPLink(c,x1,y1,x2,y2){
 
 // Draw all lines recursively
 function drawLines(n,s){
-  if(!n.ch)return;
-  var pp=pos[n._id];if(!pp)return;
-  n.ch.forEach(function(ch){
-    var cp=pos[ch._id];if(!cp)return;
-    if(ch.tp==='p') dPLink(C,pp.x,pp.y,cp.x,cp.y);
-    else dLine(C,pp.x,pp.y,cp.x,cp.y,ch.col||'#5b8aff',s.lo,s.lw);
-    drawLines(ch,s);
-  });
+  if(!n.ch){}else{
+    var pp=pos[n._id];if(!pp)return;
+    n.ch.forEach(function(ch){
+      var cp=pos[ch._id];if(!cp)return;
+      if(ch.tp==='p') dPLink(C,pp.x,pp.y,cp.x,cp.y);
+      else dLine(C,pp.x,pp.y,cp.x,cp.y,ch.col||'#5b8aff',s.lo,s.lw);
+      drawLines(ch,s);
+    });
+  }
+  // Draw lines from storefront to its kids
+  if(n.tp==='s'&&n.kids&&n.kids.length){
+    var sp=pos[n._id];if(!sp)return;
+    n.kids.forEach(function(kid){
+      var kp=pos[kid._id];if(!kp)return;
+      dLine(C,sp.x,sp.y,kp.x,kp.y,kid.col||n.col,s.lo*0.6,Math.max(0.5,s.lw*0.6));
+    });
+  }
 }
 
 function draw(){
@@ -309,8 +344,18 @@ function draw(){
     dPart(C,f.x+(t.x-f.x)*e,f.y+(t.y-f.y)*e,s.pr,p.ic,p.co,Math.sin(p.t*Math.PI)*.85);
   });
 
-  // Nodes: circles first, then rects on top
+  // Nodes: child circles first, then storefronts, then rects on top
   var all=flat(R,0);
+  // Draw storefront kids (smallest circles)
+  all.forEach(function(f){
+    if(f.n.tp==='s'&&f.n.kids&&f.n.kids.length){
+      var nr=s.nr*(f.d<=1?1:Math.pow(.75,f.d-1))*0.55;
+      f.n.kids.forEach(function(kid){
+        var kp=pos[kid._id];if(!kp)return;
+        dCirc(C,kp.x,kp.y,nr,kid.col||f.n.col,kid.lb,kid.sub);
+      });
+    }
+  });
   all.forEach(function(f){
     var p=pos[f.n._id];if(!p)return;
     if(f.n.tp==='s'){
@@ -332,11 +377,18 @@ window.draw=draw;
 // Edges for particles
 function edges(n){
   var r=[];
-  if(!n.ch)return r;
-  n.ch.forEach(function(ch){
-    r.push({fi:n._id,ti:ch._id,nd:ch});
-    r=r.concat(edges(ch));
-  });
+  if(n.ch){
+    n.ch.forEach(function(ch){
+      r.push({fi:n._id,ti:ch._id,nd:ch});
+      r=r.concat(edges(ch));
+    });
+  }
+  // Storefront kids
+  if(n.tp==='s'&&n.kids){
+    n.kids.forEach(function(kid){
+      r.push({fi:n._id,ti:kid._id,nd:kid});
+    });
+  }
   return r;
 }
 
@@ -437,6 +489,47 @@ function buildUI(n,container,parent){
     }else{
       d.appendChild(mkIc('Icon',n.ic,function(v){n.ic=v}));
     }
+    // Child nodes
+    if(n.kids&&n.kids.length){
+      var ckd=document.createElement('div');ckd.className='kids';
+      var ckl=document.createElement('div');ckl.style.cssText='font-size:7px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.2);font-weight:700';
+      ckl.textContent='CHILDREN ('+n.kids.length+')';ckd.appendChild(ckl);
+      n.kids.forEach(function(kid,ki){
+        var kc=document.createElement('div');kc.className='nd sf';kc.style.borderLeftColor=kid.col||n.col;
+        var kh=document.createElement('div');kh.className='ndh';
+        var kt=document.createElement('span');kt.className='ndt ts2';kt.textContent='CHILD';kh.appendChild(kt);
+        var kr=document.createElement('button');kr.className='ndr';kr.textContent='✕';
+        kr.onclick=function(){n.kids.splice(n.kids.indexOf(kid),1);delete pos[kid._id];renderTree();rspawn();draw()};
+        kh.appendChild(kr);kc.appendChild(kh);
+        var kr1=document.createElement('div');kr1.className='rw';
+        var kli=document.createElement('input');kli.value=kid.lb;kli.placeholder='Label';
+        kli.oninput=function(){kid.lb=kli.value;draw()};
+        var kci=document.createElement('input');kci.type='color';kci.value=kid.col||n.col;kci.className='ci';
+        kci.oninput=function(){kid.col=kci.value;kc.style.borderLeftColor=kci.value;draw()};
+        kr1.appendChild(kli);kr1.appendChild(kci);kc.appendChild(kr1);
+        var kr2=document.createElement('div');kr2.className='rw';
+        var ksi=document.createElement('input');ksi.value=kid.sub||'';ksi.placeholder='Sub-label';
+        ksi.oninput=function(){kid.sub=ksi.value;draw()};
+        kr2.appendChild(ksi);kc.appendChild(kr2);
+        var kr3=document.createElement('div');kr3.className='rw';
+        var kfl=document.createElement('label');kfl.style.cssText='font-size:8px;color:rgba(255,255,255,.28);white-space:nowrap';kfl.textContent='Flow';
+        var ksel=document.createElement('select');
+        [['both','↔ Both'],['out','→ Out'],['in','← In']].forEach(function(p2){var o=document.createElement('option');o.value=p2[0];o.textContent=p2[1];if(kid.fl===p2[0])o.selected=true;ksel.appendChild(o)});
+        ksel.onchange=function(){kid.fl=ksel.value;renderTree();rspawn();draw()};
+        kr3.appendChild(kfl);kr3.appendChild(ksel);kc.appendChild(kr3);
+        if(kid.fl==='both'){
+          kc.appendChild(mkIc('→ Out',kid.ic,function(v){kid.ic=v}));
+          kc.appendChild(mkIc('← In',kid.icIn,function(v){kid.icIn=v}));
+        }else{
+          kc.appendChild(mkIc('Icon',kid.ic,function(v){kid.ic=v}));
+        }
+        ckd.appendChild(kc);
+      });
+      d.appendChild(ckd);
+    }
+    var acb=document.createElement('button');acb.className='ab';acb.textContent='+ Child Node';
+    acb.onclick=function(){if(!n.kids)n.kids=[];n.kids.push({tp:'s',lb:'Child',sub:'',col:n.col,fl:'out',ic:'👤',icIn:'🚗',_id:nid()});renderTree();rspawn();draw()};
+    d.appendChild(acb);
   }
 
   // Children container
@@ -491,7 +584,10 @@ var PRESETS={
   multi:{hl:'Multi-Platform Network',sh:'Connected platforms with dealership sub-platforms',tg:'WAGONEX · CONNECTED PLATFORMS',
     root:{tp:'p',lb:'WAGONEX',ch:[
       {tp:'p',lb:'UK Dealers',ch:[
-        {tp:'s',lb:'London',sub:'Pro',col:'#2dd4a0',fl:'both',ic:'👤',icIn:'🚗'},
+        {tp:'s',lb:'London',sub:'Pro',col:'#2dd4a0',fl:'both',ic:'👤',icIn:'🚗',kids:[
+          {tp:'s',lb:'Kensington',sub:'Branch',col:'#2dd4a0',fl:'out',ic:'👤',icIn:'👤'},
+          {tp:'s',lb:'Camden',sub:'Branch',col:'#2dd4a0',fl:'out',ic:'👤',icIn:'👤'}
+        ]},
         {tp:'s',lb:'Manchester',sub:'Core',col:'#5b8aff',fl:'both',ic:'👤',icIn:'🚗'}
       ]},
       {tp:'p',lb:'EU Dealers',ch:[
@@ -499,7 +595,9 @@ var PRESETS={
         {tp:'s',lb:'Paris',sub:'Pro',col:'#f59e42',fl:'both',ic:'🚗',icIn:'👤'}
       ]},
       {tp:'p',lb:'US Dealers',ch:[
-        {tp:'s',lb:'NYC',sub:'Pro',col:'#facc15',fl:'both',ic:'👤',icIn:'🚗'},
+        {tp:'s',lb:'NYC',sub:'Pro',col:'#facc15',fl:'both',ic:'👤',icIn:'🚗',kids:[
+          {tp:'s',lb:'Manhattan',sub:'Branch',col:'#facc15',fl:'out',ic:'👤',icIn:'👤'}
+        ]},
         {tp:'s',lb:'LA',sub:'Marketplace',col:'#f472b6',fl:'in',ic:'🚗',icIn:'🚗'}
       ]}
     ]}}
